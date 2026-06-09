@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import clsx from 'clsx';
-
 import {
 	ArticleStateType,
 	backgroundColors,
@@ -15,61 +14,50 @@ import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
 import { RadioGroup } from 'src/ui/radio-group';
 import { Select } from 'src/ui/select';
-
+import { useCloseOnOutsideClickOrEsc } from 'src/hooks/useCloseOnOutsideClickOrEsc';
 import styles from './ArticleParamsForm.module.scss';
 
 type ArticleParamsFormProps = {
-	isOpen: boolean;
-	onToggle: () => void;
-	onApply: (nextState: ArticleStateType) => void;
-	onReset: () => void;
+	onApplyArticleParams: (nextState: ArticleStateType) => void;
+	onResetArticleParams: (nextState: ArticleStateType) => void;
 };
 
 export const ArticleParamsForm = ({
-	isOpen,
-	onToggle,
-	onApply,
-	onReset,
+	onApplyArticleParams,
+	onResetArticleParams,
 }: ArticleParamsFormProps) => {
+	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [formState, setFormState] =
 		useState<ArticleStateType>(defaultArticleState);
-	const rootRef = useRef<HTMLDivElement>(null);
+	const sidebarRef = useRef<HTMLDivElement>(null);
 
-	useEffect(() => {
-		if (!isOpen) {
-			return;
-		}
+	useCloseOnOutsideClickOrEsc({
+		isOpenElement: isSidebarOpen,
+		elementRef: sidebarRef,
+		onClose: () => setIsSidebarOpen(false),
+	});
 
-		const handleOutsideMouseDown = (event: MouseEvent) => {
-			const { target } = event;
-
-			if (target instanceof Node && !rootRef.current?.contains(target)) {
-				onToggle();
-			}
-		};
-
-		window.addEventListener('mousedown', handleOutsideMouseDown);
-
-		return () => {
-			window.removeEventListener('mousedown', handleOutsideMouseDown);
-		};
-	}, [isOpen, onToggle]);
+	const handleToggleSidebar = () => {
+		setIsSidebarOpen((currentValue) => !currentValue);
+	};
 
 	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		onApply(formState);
+		onApplyArticleParams(formState);
 	};
 
 	const handleReset = () => {
 		setFormState(defaultArticleState);
-		onReset();
+		onResetArticleParams(defaultArticleState);
 	};
 
 	return (
-		<div ref={rootRef}>
-			<ArrowButton isOpen={isOpen} onClick={onToggle} />
+		<div ref={sidebarRef}>
+			<ArrowButton isOpen={isSidebarOpen} onClick={handleToggleSidebar} />
 			<aside
-				className={clsx(styles.container, { [styles.container_open]: isOpen })}>
+				className={clsx(styles.container, {
+					[styles.container_open]: isSidebarOpen,
+				})}>
 				<form
 					className={styles.form}
 					onSubmit={handleSubmit}
