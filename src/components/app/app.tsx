@@ -1,26 +1,52 @@
-import { CSSProperties } from 'react';
+import { useState, CSSProperties } from 'react';
 import clsx from 'clsx';
 
 import { Article } from '../article/Article';
 import { ArticleParamsForm } from '../article-params-form/ArticleParamsForm';
-import { defaultArticleState } from './../../constants/articleProps';
+import {
+	ArticleStateType,
+	defaultArticleState,
+} from './../../constants/articleProps';
 
 import styles from './app.module.scss';
 
 export const App = () => {
+	const [isParamsOpen, setIsParamsOpen] = useState(false);
+	const [appliedArticleState, setAppliedArticleState] =
+		useState<ArticleStateType>(defaultArticleState);
+
+	const handleToggleParams = () => {
+		setIsParamsOpen((currentValue) => !currentValue);
+	};
+
+	const handleApply = (nextState: ArticleStateType) => {
+		setAppliedArticleState(nextState);
+		setIsParamsOpen(false);
+	};
+
+	const handleReset = () => {
+		setAppliedArticleState(defaultArticleState);
+		setIsParamsOpen(false);
+	};
+
 	return (
 		<main
 			className={clsx(styles.main)}
 			style={
 				{
-					'--font-family': defaultArticleState.fontFamilyOption.value,
-					'--font-size': defaultArticleState.fontSizeOption.value,
-					'--font-color': defaultArticleState.fontColor.value,
-					'--container-width': defaultArticleState.contentWidth.value,
-					'--bg-color': defaultArticleState.backgroundColor.value,
+					'--font-family': appliedArticleState.fontFamilyOption.value,
+					'--font-size': appliedArticleState.fontSizeOption.value,
+					'--font-color': appliedArticleState.fontColor.value,
+					'--container-width': appliedArticleState.contentWidth.value,
+					'--bg-color': appliedArticleState.backgroundColor.value,
 				} as CSSProperties
 			}>
-			<ArticleParamsForm />
+			<ArticleParamsForm
+				isOpen={isParamsOpen}
+				onToggle={handleToggleParams}
+				onApply={handleApply}
+				onReset={handleReset}
+			/>
 			<Article />
 		</main>
 	);
